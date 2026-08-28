@@ -1,0 +1,2855 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing:border-box;
+}
+
+/* =======================================================
+   TEMA (dark / light) — variáveis de cor
+   O tema padrão é escuro (:root). A classe .light-theme no
+   <html> troca as variáveis pro tema claro. Os elementos
+   principais do site (fundo, cards, textos, inputs, modais)
+   usam essas variáveis em vez de cor fixa.
+======================================================= */
+:root{
+    /* Cor que o rodapé do hero esmaece até se fundir com o conteúdo
+       abaixo. Muda com o tema pra não criar um corte seco. */
+    --hero-fade: #0a0a0a;
+
+    --bg-surface: #141414;      /* movie-card, modal-content base */
+    --bg-surface-2: #181818;    /* stat-card, chart-card */
+    --bg-surface-3: #1b1b1b;    /* inputs, filter-btn, wrapped-stat */
+    --bg-surface-4: #111111;    /* poster-card, no-poster */
+
+    --text-primary: #ffffff;
+    --text-secondary: #8f8f8f;
+    --text-muted: #7a7a7a;
+
+    --border-soft: rgba(255,255,255,.08);
+    --border-input: #333333;
+
+    --accent: #FFD54A;
+}
+
+html.light-theme{
+    /* Tons neutros de cinza-areia — um branco puro deixaria tudo
+       "estourado", então preferimos algo mais suave */
+    --bg-surface: #f1efea;
+    --bg-surface-2: #f1efea;
+    --bg-surface-3: #e7e4dd;
+    --bg-surface-4: #ddd9d0;
+
+    --text-primary: #2a2a28;
+    --text-secondary: #6b675f;
+    --text-muted: #7a766c;
+
+    --border-soft: rgba(0,0,0,.08);
+    --border-input: #cbc7bd;
+
+    /* Mesmo dourado do tema escuro — assim setas, pontinhos, botões e
+       barras dos gráficos combinam entre si nos dois temas */
+    --accent: #FFD54A;
+
+    --hero-fade: #e3e0da;
+}
+
+html.light-theme body{
+    color: var(--text-primary);
+}
+
+body {
+    /* O fundo sólido é só um fallback — quem realmente pinta o fundo
+       são as camadas ::before/::after logo abaixo (crossfade de tema) */
+    background: #000;
+    font-family: "Anton", sans-serif;
+    display: flex;
+    justify-content:center;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--text-primary);
+    transition: color .35s ease;
+}
+
+/* O <main> precisa de width:100% explícito: como o body é flex sem
+   flex-direction:column, um item sem largura própria encolhe pro
+   tamanho do conteúdo em vez de ocupar a tela toda — o que quebrava a
+   responsividade de tudo que fica dentro dele. */
+main{
+    width: 100%;
+    max-width: 100vw;
+}
+
+/* =======================================================
+   CROSSFADE DE TEMA
+   CSS não anima suavemente entre dois gradientes diferentes
+   (a troca ficaria travada até trocar de repente no fim).
+   Solução: duas camadas de fundo fixas, uma por tema,
+   sobrepostas — só a OPACIDADE delas transiciona.
+======================================================= */
+body::before,
+body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    transition: opacity .55s ease-in-out;
+}
+
+/* Camada do tema escuro (visível por padrão) */
+body::before{
+    background:
+        radial-gradient(circle at top, #f5c54230, transparent 55%),
+        linear-gradient(180deg, #080808, #000000);
+    opacity: 1;
+}
+
+body.ranking-active::before{
+    background: #000000;
+}
+
+/* Camada do tema claro (some por padrão) */
+body::after{
+    background:
+        radial-gradient(circle at top, #d9c99a30, transparent 55%),
+        linear-gradient(180deg, #eae8e2, #dcd9d1);
+    opacity: 0;
+}
+
+body.ranking-active::after{
+    background:
+        radial-gradient(circle at top, #d9c99a20, transparent 60%),
+        #e3e0da;
+}
+
+html.light-theme body::before{
+    opacity: 0;
+}
+
+html.light-theme body::after{
+    opacity: 1;
+}
+
+span {
+    color: #FFD54A;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    position: relative;
+}
+
+h1 {
+    color: var(--text-primary);
+    font-size: 160px;
+    font-weight: bold;
+    text-transform:uppercase;
+    margin-bottom: 30px;
+    letter-spacing:3px;
+    animation: aparecer 0.8s ease;
+    transition: color .35s ease;
+}
+
+p {
+   color:var(--text-secondary);
+    font-size:15px;
+    letter-spacing:2px;
+    margin-top:30px;
+    margin-bottom:50px; 
+    transition: color .35s ease;
+}
+
+.buttons {
+    display:flex;
+    gap:20px;
+}
+
+.btn{
+    width:210px;
+    height:60px;
+
+    background:rgba(255,255,255,.07);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    backdrop-filter:blur(10px);
+
+    border-radius:14px;
+
+    color:var(--text-primary);
+
+    font-family:"Anton",sans-serif;
+
+    font-size:18px;
+
+    letter-spacing:1px;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+.btn:hover:not(:disabled){
+
+    background:rgba(255,255,255,.15);
+
+    border-color:#FFD54A;
+
+    color:#FFD54A;
+
+    transform:translateY(-3px);
+
+}
+
+button.btn:disabled,
+.btn:disabled {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.08);
+    color: rgba(255,255,255,.45);
+    opacity: 0.65;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+    transform: none;
+    box-shadow: none;
+}
+
+/* No tema claro, o botão "vidro" translúcido (pensado pra fundo
+   escuro) precisa de um vidro escuro pra continuar visível */
+html.light-theme .btn{
+    background: rgba(0,0,0,.05);
+    border: 1px solid rgba(0,0,0,.12);
+    color: var(--text-primary);
+}
+
+html.light-theme .btn:hover:not(:disabled){
+    background: rgba(0,0,0,.08);
+}
+
+html.light-theme button.btn:disabled,
+html.light-theme .btn:disabled {
+    background: rgba(0,0,0,.04);
+    border: 1px solid rgba(0,0,0,.08);
+    color: rgba(0,0,0,.35);
+}
+
+.btn,
+.btn a {
+    text-decoration: none;
+}
+
+/* =======================================================
+   TELA INICIAL (HOME)
+======================================================= */
+
+#home{
+    position: relative;
+}
+
+/* O título precisa de position:relative pra ser a referência da
+   bolinha de luz — assim ela sempre fica junto do texto "CINERANK",
+   não da seção #home inteira (que é bem mais larga que o título) */
+#home h1{
+    position: relative;
+}
+
+/* Pontinho de luz decorativo ao lado do título. Usa unidades "em"
+   (relativas ao tamanho da fonte do h1) em vez de pixels fixos — assim
+   ela escala e se reposiciona sozinha em qualquer tamanho de tela,
+   acompanhando o h1 nos breakpoints, sem precisar de ajuste manual. */
+.home-light{
+    position: absolute;
+
+    top: 0.12em;
+    left: -0.22em;
+
+    width: 0.06em;
+    height: 0.06em;
+
+    background: #FFD54A;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 0.06em #FFD54A,
+        0 0 0.19em #FFD54A,
+        0 0 0.31em #FFD54A;
+}
+
+/* =======================================================
+   LISTA DE FILMES (view em lista, dentro do ranking)
+======================================================= */
+
+#movieList {
+    width: min(100%, 980px);
+    margin: 50px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.load-more-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 26px 0 50px;
+}
+
+#loadMoreBtn {
+    width: auto;
+    min-width: 260px;
+    height: 62px;
+    padding: 0 32px;
+    background: linear-gradient(135deg, rgba(255,215,74,0.98), rgba(255,182,45,0.95));
+    border: none;
+    color: #111;
+    font-family: "Anton", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-radius: 999px;
+    box-shadow: 0 18px 40px rgba(255, 193, 7, 0.24);
+    transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+}
+
+#loadMoreBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 50px rgba(255, 193, 7, 0.32);
+    filter: brightness(1.04);
+}
+
+#loadMoreBtn:active {
+    transform: translateY(0);
+}
+
+/* Card individual da lista de filmes */
+.movie-card {
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 18px;
+    color: var(--text-primary);
+    transition: transform .25s ease, box-shadow .25s ease, background-color .35s ease, border-color .35s ease, color .35s ease;
+}
+
+.movie-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    /* Flex items têm min-width:auto por padrão — sem isso, um título
+       comprido sem espaço pra quebrar forçava o card inteiro a nunca
+       ficar menor que o texto, travando a responsividade em mobile */
+    min-width: 0;
+}
+
+.movie-card .movie-header {
+    margin-bottom: 18px;
+}
+
+.movie-card .movie-details {
+    flex-grow: 1;
+}
+
+.movie-card:hover {
+    transform: translateY(-4px);
+    border-color: #ffd54a;
+    box-shadow: 0 15px 35px rgba(0,0,0,.25);
+}
+
+/* =======================================================
+   ANIMAÇÕES DE ENTRADA
+======================================================= */
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeUp{
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.movie-card a{
+    color:white;
+    text-decoration:none;
+    transition:.3s;
+}
+
+.movie-card h1{
+    font-family: "Anton", sans-serif;
+}
+
+.movie-card h3{
+    font-family: "Anton", sans-serif;
+    font-size:20px;
+    font-weight:400;
+}
+
+.movie-card h3 span{
+    margin-right: 8px;
+    font-size:22px;
+    color:#FFD54A;
+}
+
+.movie-card h2{
+    font-family: "Anton", sans-serif;
+    color: var(--text-primary);
+    font-size:32px;
+    font-weight:400;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    margin: 12px 0 25px;
+    transition: color .35s ease;
+}
+
+.movie-card p{
+    font-family:"Anton", sans-serif;
+    font-size:16px;
+    font-weight:400;
+    margin: 10px 0;
+    color: var(--text-primary);
+}
+
+.rating{
+    color:#FFD54A;
+}
+
+.genre{
+    color:#A0A0A0;
+}
+
+.movie-link{
+    text-decoration:none;
+    color:inherit;
+    display:block;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    border-color: #FFD54A;
+}
+
+.movie-card a:hover{
+    color:#FFD54A;
+}
+
+/* =======================================================
+   TELA DE RANKING (contêiner geral)
+======================================================= */
+
+#ranking {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.hidden {
+    display: none;
+}
+
+/* =======================================================
+   BARRA DE CARREGAMENTO (importação do CSV)
+======================================================= */
+
+#loading{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Largura fixa: sem isso, o texto do progresso mudando de tamanho
+       (ex: "5/606" vs "120/606") fazia a barra "pular" de tamanho a
+       cada atualização */
+    width: min(420px, 85%);
+}
+
+.loading-bar{
+    width:100%;
+    height:6px;
+    background:#2b2b2b;
+    border-radius:50px;
+    overflow:hidden;
+}
+
+#progress{
+    width:0%;
+    height:100%;
+    background:rgb(255,230,0);
+    transition:.25s;
+}
+
+#loadingText{
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+#fileName{
+    font-family: "Anton", sans-serif;
+    color: #8f8f8f;
+    text-align: center;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 15px;
+    text-transform: lowercase;
+}
+
+.progress-bar{
+    width: min(600px, 90%);
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.movie-link{
+    text-decoration:none;
+    color:inherit;
+}
+
+.movie-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 22px;
+    cursor: pointer;
+    transition: transform .25s ease, box-shadow .25s ease, background-color .35s ease, border-color .35s ease;
+}
+
+.movie-card:hover {
+    transform: translateY(-4px);
+    border-color: #ffd54a;
+    box-shadow: 0 10px 30px rgba(255, 213, 74, .15);
+}
+
+/* =======================================================
+   PÔSTER DO CARD DE FILME
+======================================================= */
+
+.movie-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 22px;
+    cursor: pointer;
+    transition: transform .25s ease, box-shadow .25s ease, background-color .35s ease, border-color .35s ease;
+}
+
+.movie-card:hover {
+    transform: translateY(-4px);
+    border-color: #ffd54a;
+    box-shadow: 0 10px 30px rgba(255, 213, 74, .15);
+}
+
+.movie-poster {
+    width: 140px;
+    height: 220px;
+    flex-shrink: 0;
+}
+
+.movie-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+    transition: .3s;
+}
+
+.movie-card:hover .movie-poster img {
+    transform: scale(1.04);
+}
+
+.movie-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    flex: 1;
+    min-width: 0;
+}
+
+.movie-position {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.movie-position span {
+    color: #ffd54a;
+}
+
+.movie-title {
+    margin: 0;
+    font-size: 3.2rem;
+    line-height: 1;
+    color: var(--text-primary);
+}
+
+.movie-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rating,
+.genre {
+    margin: 0;
+}
+
+/* Placeholder mostrado quando o filme não tem pôster disponível */
+.no-poster{
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:var(--bg-surface-4);
+    border:2px dashed #444;
+    border-radius:12px;
+    text-align:center;
+    padding:10px;
+}
+
+.no-poster-icon{
+    font-size:2.5rem;
+    margin-bottom:10px;
+}
+
+.no-poster p{
+    color:#ffd54a;
+    font-family:"Bebas Neue", sans-serif;
+    letter-spacing:2px;
+    font-size:1rem;
+}
+
+/* =======================================================
+   BANNER PRINCIPAL (HERO)
+   Full-bleed (ocupa a largura inteira da viewport) com duas
+   camadas de fundo que se alternam a cada troca de destaque,
+   criando um crossfade suave em vez de trocar a foto seco.
+======================================================= */
+
+.hero{
+    position:relative;
+    width:100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    height:70vh;
+    min-height:500px;
+    max-height:620px;
+    border-radius:0;
+    overflow:hidden;
+    background-size:cover;
+    background-position:center;
+    margin-bottom:80px;
+}
+
+.hero-bg{
+    position:absolute;
+    inset:0;
+    background-size:cover;
+    background-position:center;
+    opacity:0;
+    transition:opacity 1.4s ease;
+    z-index:0;
+}
+
+.hero-bg.active{
+    opacity:1;
+}
+
+/* Placeholder com "shimmer" enquanto a primeira foto do banner baixa */
+.hero-skeleton{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    background: linear-gradient(
+        100deg,
+        #1a1a1a 30%,
+        #262626 45%,
+        #1a1a1a 60%
+    );
+    background-size: 250% 100%;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+    opacity:1;
+    transition: opacity .5s ease;
+}
+
+.hero-skeleton.loaded{
+    opacity:0;
+    animation:none;
+    pointer-events:none;
+}
+
+.hero-overlay{
+    position:absolute;
+    inset:0;
+    z-index:1;
+
+    /* Gradiente estilo Netflix: escuro à esquerda (onde fica o texto),
+       esmaecendo pra direita, dando profundidade à imagem */
+    background:linear-gradient(
+        90deg,
+        rgba(0,0,0,.95) 0%,
+        rgba(0,0,0,.75) 30%,
+        rgba(0,0,0,.35) 60%,
+        rgba(0,0,0,.05) 100%
+    );
+}
+
+.hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:1;
+
+    /* Segunda camada: esmaece a base do hero até se fundir com o resto
+       da página. A cor final acompanha o tema (--hero-fade) pra não
+       criar um corte seco quando o site está no tema claro */
+    background:
+    linear-gradient(
+        180deg,
+        transparent 35%,
+        rgba(0,0,0,.4) 62%,
+        var(--hero-fade) 100%
+    );
+}
+
+.hero-content{
+    position:relative;
+    z-index:2;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:70px;
+    width:55%;
+
+    /* Sem isso, em telas ultrawide o texto viraria uma coluna gigante
+       e difícil de ler — nunca passa de 680px, independente da tela */
+    max-width:680px;
+
+    /* Fade suave do texto ao trocar de filme, sincronizado com o
+       crossfade do background */
+    transition:opacity .6s ease, transform .6s ease;
+}
+
+.hero-content.fading{
+    opacity:0;
+    transform:translateY(10px);
+}
+
+/* =======================================================
+   INDICADORES DO HERO (bolinhas)
+======================================================= */
+
+.hero-dots{
+    position:absolute;
+    bottom:26px;
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;
+    gap:10px;
+    z-index:3;
+}
+
+.hero-dot{
+    width:9px;
+    height:9px;
+    padding:0;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.35);
+    cursor:pointer;
+    transition:.3s ease;
+}
+
+.hero-dot:hover{
+    background:rgba(255,255,255,.65);
+}
+
+.hero-dot.active{
+    background:#FFD54A;
+    transform:scale(1.35);
+    box-shadow:0 0 10px rgba(255,213,74,.65);
+}
+
+/* =======================================================
+   SETAS DE NAVEGAÇÃO DO HERO
+======================================================= */
+
+.hero-arrow{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:38px;
+    height:38px;
+    border-radius:50%;
+
+    /* Discretas por padrão — quase transparentes, sem chamar atenção
+       até o mouse chegar perto */
+    background:transparent;
+    border:1px solid rgba(255,255,255,.25);
+
+    /* Ícone sempre branco: a foto do hero é sempre escura, então o
+       ícone não pode seguir a cor de texto do tema (ficaria escuro e
+       sumiria no tema claro) */
+    color:rgba(255,255,255,.75);
+
+    font-size:18px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:3;
+    opacity:.55;
+    backdrop-filter:blur(3px);
+    transition:opacity .25s ease, background .25s ease, border-color .25s ease, color .25s ease, transform .25s ease;
+}
+
+.hero-arrow:hover{
+    opacity:1;
+    background:rgba(255,213,74,.85);
+    border-color:#FFD54A;
+    color:#111;
+    transform:translateY(-50%) scale(1.1);
+}
+
+.hero-arrow-left{
+    left:20px;
+}
+
+.hero-arrow-right{
+    right:20px;
+}
+
+/* Ao passar o mouse por qualquer parte do hero, as setas ficam um
+   pouco mais visíveis — mas continuam discretas até isso acontecer */
+.hero:hover .hero-arrow{
+    opacity:.85;
+}
+
+@media (max-width: 640px){
+    .hero-arrow{
+        width:34px;
+        height:34px;
+        font-size:16px;
+        opacity:.5;
+    }
+    .hero-arrow-left{ left:12px; }
+    .hero-arrow-right{ right:12px; }
+    .hero-dots{ bottom:16px; }
+}
+
+.hero-content h1{
+    font-size:90px;
+    margin-bottom:15px;
+
+    /* Fica sobre a foto escura do hero — precisa continuar branco
+       mesmo no tema claro, senão fica ilegível */
+    color:#ffffff;
+}
+
+.hero-content p{
+    margin:10px 0;
+    color:#ffffff;
+}
+
+/* Botão "View Details": cor própria (o mesmo dourado do "Watch
+   Trailer" e do "Download PDF"), fixa nos dois temas — assim tudo
+   fica combinando e o texto nunca perde contraste em cima da foto */
+#heroButton{
+    align-self: flex-start;
+    margin-top: 12px;
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+    border: none;
+    color: #111;
+    box-shadow: 0 14px 32px rgba(255,183,0,.28);
+}
+
+#heroButton:hover{
+    background: linear-gradient(135deg, #fff176, #ffca28);
+    color: #111;
+    transform: translateY(-3px);
+}
+
+/* =======================================================
+   BARRA DE PESQUISA
+======================================================= */
+
+.search-container{
+    width: 100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:30px;
+    margin:50px 0;
+}
+
+.search-box{
+    width:650px;
+    position:relative;
+}
+
+#searchMovie{
+    width:100%;
+    height:60px;
+    padding:0 20px;
+    background:var(--bg-surface-3);
+    border:2px solid var(--border-input);
+    border-radius:14px;
+    color:var(--text-primary);
+    font-size:1rem;
+    outline:none;
+    transition:.3s;
+}
+
+#searchMovie:focus{
+    border-color:#FFD54A;
+    box-shadow:0 0 15px rgba(255,213,74,.25);
+}
+
+#searchMovie:hover{
+    border-color: #444;
+}
+
+/* Label flutuante: sobe e encolhe quando o campo tem foco ou texto */
+.search-box label{
+    position:absolute;
+    left:20px;
+    top:50%;
+    transform:translateY(-50%);
+    color:#888;
+    transition:.25s;
+    pointer-events:none;
+    background:transparent;
+    padding:0;
+}
+
+#searchMovie:focus + label,
+#searchMovie:not(:placeholder-shown) + label{
+    top:-10px;
+    left:14px;
+    font-size:.75rem;
+    color:#FFD54A;
+    padding:0 6px;
+}
+
+/* =======================================================
+   TÍTULO "FIND YOUR NEXT FAVORITE"
+======================================================= */
+
+.search-title{
+    font-size: 5.5rem;
+    color: var(--text-primary);
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 10px;
+    line-height: .9;
+    letter-spacing: 3px;
+}
+
+.search-subtitle{
+    text-align:center;
+    color: #FFD54A;
+    opacity: 1;
+    font-size:1rem;
+    letter-spacing:2px;
+    margin-bottom:25px;
+}
+
+.search-section{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+/* =======================================================
+   CARDS DE ESTATÍSTICA
+======================================================= */
+
+.stats{
+    display:flex;
+    justify-content:center;
+    gap:25px;
+    margin:40px 0;
+    flex-wrap:wrap;
+}
+
+.stat-card{
+    width:180px;
+    height:110px;
+    background:var(--bg-surface-2);
+    border:1px solid rgba(255,213,74,.15);
+    border-radius:16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    transition:.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-4px);
+    border-color:#FFD54A;
+    box-shadow:0 10px 25px rgba(255,213,74,.15);
+}
+
+.stat-card p{
+    margin:0;
+    color:var(--text-secondary);
+    font-size:.9rem;
+    letter-spacing:1px;
+    transition: color .35s ease;
+    text-transform:uppercase;
+}
+
+.stat-card h2{
+    color:#FFD54A;
+    font-size: 2.0rem;
+    margin-bottom:8px;
+    line-height: 1;
+    letter-spacing: 1px;
+}
+
+.stat-card span{
+    color:var(--text-secondary);
+    font-size:.9rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    transition: color .35s ease;
+}
+
+.stats-container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    width:100%;
+    max-width:1100px;
+    margin:40px auto;
+}
+
+/* =======================================================
+   FILTROS (All / Movies / TV Shows / Top Rated / Favorites)
+======================================================= */
+
+.filters{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.filter-btn{
+    padding:12px 24px;
+    background:var(--bg-surface-3);
+    color:var(--text-primary);
+    border:1px solid var(--border-input);
+    border-radius:10px;
+    cursor:pointer;
+    transition:.25s;
+    font-family:"Anton", sans-serif;
+    letter-spacing:1px;
+}
+
+.filter-btn:hover{
+    border-color:#FFD54A;
+    color:#FFD54A;
+}
+
+.filter-btn.active{
+    background:#FFD54A;
+    color:#111;
+    border-color:#FFD54A;
+}
+
+/* =======================================================
+   MODAL DE DETALHES DO FILME
+======================================================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.88);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:24px;
+    z-index:999;
+}
+
+.modal.hidden{
+    display:none;
+}
+
+.modal-content{
+    width:900px;
+    max-width:1000px;
+    max-height:90vh;
+    background:linear-gradient(180deg, var(--bg-surface), var(--bg-surface));
+    border:1px solid rgba(255, 213, 74, .2);
+    box-shadow:0 35px 80px rgba(0,0,0,.35);
+    border-radius:28px;
+    padding:30px;
+    display:flex;
+    gap:30px;
+    position:relative;
+    overflow:hidden;
+    transition: background .35s ease, box-shadow .35s ease;
+}
+
+/* Brilho decorativo sutil nos cantos do modal */
+.modal-content::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:radial-gradient(circle at top left, rgba(255,212,74,.14), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(255,255,255,.08), transparent 28%);
+}
+
+.wrapped-content{
+    max-width:700px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:20px;
+    /* Respiro extra no topo — o ícone/título ficavam colados demais na
+       borda arredondada do card, parecendo "vazar" pra fora dele */
+    padding-top: 20px;
+}
+
+.wrapped-title{
+    font-size:60px;
+    color:#FFD54A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* O emoji herdava o font-size:60px do título e, dependendo do sistema
+   operacional, renderizava enorme e desalinhado (parecia "vazar" pra
+   fora do card). Aqui ele ganha um tamanho próprio, proporcional ao
+   texto, e fica alinhado certinho ao lado do título. */
+.wrapped-title-icon{
+    font-size: 44px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.wrapped-stat{
+    width:100%;
+    padding:10px;
+    background:var(--bg-surface-3);
+    border-radius:15px;
+    border:1px solid rgba(255,213,74,.15);
+    transition: background .35s ease, box-shadow .3s ease, transform .3s ease, border-color .35s ease;
+}
+
+.wrapped-stat h2{
+    color:#FFD54A;
+    margin-bottom:8px;
+}
+
+.wrapped-stat p{
+    margin:0;
+    color:var(--text-primary);
+    transition: color .35s ease;
+}
+
+.modal-poster{
+    width:320px;
+    min-width:320px;
+    height:460px;
+    flex-shrink:0;
+    border-radius:24px;
+    overflow:hidden;
+    background:var(--bg-surface-4);
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+    transition: background .35s ease;
+}
+
+.modal-poster img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    transition:transform .35s ease;
+}
+
+.modal-poster img:hover{
+    transform:scale(1.02);
+}
+
+.modal-info{
+    color:var(--text-primary);
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    flex:1;
+    z-index:1;
+    transition: color .35s ease;
+
+    /* Altura FIXA (não max-height com calc) — igual à do pôster ao
+       lado. Um max-height combinado com o comportamento padrão de
+       "stretch" do flexbox é ambíguo quando o conteúdo é mais alto
+       que o pôster, e às vezes o navegador simplesmente deixava a
+       coluna crescer com o conteúdo em vez de limitar — daí o
+       overflow:hidden do modal cortava tudo sem chance de rolar.
+       Com altura fixa isso deixa de ser ambíguo. */
+    height: 460px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+/* Barra de rolagem discreta, no mesmo estilo dourado do resto do site */
+.modal-info::-webkit-scrollbar{
+    width: 6px;
+}
+
+.modal-info::-webkit-scrollbar-thumb{
+    background: rgba(255, 213, 74, 0.45);
+    border-radius: 999px;
+}
+
+.modal-info::-webkit-scrollbar-thumb:hover{
+    background: rgba(255, 213, 74, 0.8);
+}
+
+.modal-info::-webkit-scrollbar-track{
+    background: transparent;
+}
+
+.modal-info h2{
+    font-size:3rem;
+    line-height:1.05;
+    letter-spacing:1px;
+    margin:0;
+}
+
+.modal-info p{
+    margin:0;
+    line-height:1.7;
+    color:var(--text-secondary);
+    font-size:1rem;
+    transition: color .35s ease;
+}
+
+/* Primeiro parágrafo é a nota (⭐ 8.6) — mantém o dourado de destaque */
+.modal-info p:first-of-type{
+    color:#ffd54a;
+    font-size:1.05rem;
+}
+
+/* #modalIMDb tem prioridade de especificidade (ID) sobre a regra
+   genérica de botão do tema claro, garantindo que ele fique sempre
+   dourado como os outros botões de ação */
+#modalIMDb,
+.modal-info .btn,
+.modal-info a.btn{
+    width: 210px;
+    height: 60px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 26px;
+    align-self: flex-start;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+    border: 1px solid rgba(255,255,255,.18);
+    color: #111;
+    text-transform: uppercase;
+    box-shadow: 0 18px 40px rgba(255,214,74,.12);
+}
+
+#modalIMDb:hover,
+.modal-info .btn:hover,
+.modal-info a.btn:hover{
+    background: linear-gradient(135deg, #fff176, #ffca28);
+}
+
+#closeModal{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    color:var(--text-primary);
+    font-size:22px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:transform .2s ease, background .2s ease, color .35s ease, border-color .35s ease;
+    z-index:2;
+}
+
+html.light-theme #closeModal{
+    background: rgba(0,0,0,.06);
+    border: 1px solid rgba(0,0,0,.12);
+}
+
+#closeModal:hover{
+    transform:scale(1.05);
+    background:rgba(255,255,255,.15);
+}
+
+html.light-theme #closeModal:hover{
+    background: rgba(0,0,0,.12);
+}
+
+/* =======================================================
+   BOTÃO DE FECHAR DO WRAPPED
+======================================================= */
+
+#closeWrapped,
+#closeLibrary,
+#closeReviews{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    color:var(--text-primary);
+    font-size:22px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:transform .2s ease, background .2s ease, color .35s ease, border-color .35s ease;
+    z-index:2;
+}
+
+html.light-theme #closeWrapped,
+html.light-theme #closeLibrary,
+html.light-theme #closeReviews{
+    background: rgba(0,0,0,.06);
+    border: 1px solid rgba(0,0,0,.12);
+}
+
+#closeWrapped:hover,
+#closeLibrary:hover,
+#closeReviews:hover{
+    transform:scale(1.05);
+    background:rgba(255,255,255,.15);
+    color:#FFD54A;
+}
+
+html.light-theme #closeWrapped:hover,
+html.light-theme #closeLibrary:hover,
+html.light-theme #closeReviews:hover{
+    background: rgba(0,0,0,.12);
+}
+
+@media (max-width: 980px) {
+    .modal-content{
+        flex-direction:column;
+        align-items:center;
+        max-height:95vh;
+    }
+    .modal-poster{
+        width:100%;
+        min-width:auto;
+        height:420px;
+    }
+    .modal-info{
+        width:100%;
+        /* No mobile o pôster já ocupa 420px fixos em cima — o resto
+           (menos o padding do modal) fica pra coluna de info rolar */
+        max-height: calc(95vh - 420px - 60px);
+    }
+    wrapped-content{
+       
+    }
+}
+
+@media (max-width: 640px) {
+    .modal-content{
+        padding:22px;
+        gap:18px;
+    }
+    .modal-info h2{
+        font-size:2.4rem;
+    }
+    .modal-info p{
+        font-size:0.95rem;
+    }
+}
+
+/* Normaliza a altura dos cards de filme pra ficarem alinhados */
+.movie-card{
+    align-items: stretch;
+    min-height: 260px;
+}
+
+.movie-info{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    min-height:100%;
+}
+
+.movie-header{
+    margin-bottom: 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* =======================================================
+   BOTÃO DE FAVORITAR (estrela)
+======================================================= */
+
+.favorite-btn{
+    background:none;
+    border:none;
+    color:#777;
+    font-size:28px;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.favorite-btn:hover{
+    color:#FFD54A;
+    transform:scale(1.15);
+}
+
+.favorite-btn.active{
+    color:#FFD54A;
+}
+
+/* =======================================================
+   TRAILER (botão e player embutido)
+======================================================= */
+
+/* =======================================================
+   AVALIAÇÃO PESSOAL (dentro do modal do filme)
+======================================================= */
+
+.user-rating{
+    background: var(--bg-surface-3);
+    border: 1px solid rgba(255,213,74,.15);
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    transition: background .35s ease;
+}
+
+.user-rating-title{
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+    transition: color .35s ease;
+}
+
+.user-rating-display{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stars-display{
+    font-size: 1.4rem;
+    color: #FFD54A;
+    letter-spacing: 2px;
+}
+
+.rating-score{
+    font-family: "Anton", sans-serif;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    transition: color .35s ease;
+}
+
+.rate-btn{
+    width: auto;
+    height: 42px;
+    padding: 0 22px;
+    font-size: .9rem;
+}
+
+/* Formulário que abre ao clicar em "Avaliar" */
+.rating-form{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
+}
+
+/* Precisa ser mais específico que ".hidden" sozinho (uma classe cada
+   teria a mesma prioridade, e ".hidden" perderia por vir antes no
+   arquivo) — sem isso, o formulário nunca ficava escondido de verdade,
+   mesmo com a classe "hidden" aplicada, e o botão "Rate" parecia não
+   fazer nada ao clicar. */
+.rating-form.hidden{
+    display: none;
+}
+
+.rating-form-title{
+    color: var(--text-primary);
+    font-size: .95rem;
+    letter-spacing: .5px;
+    transition: color .35s ease;
+}
+
+.stars-input{
+    display: flex;
+    gap: 6px;
+}
+
+.star-btn{
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: color .15s ease, transform .15s ease;
+}
+
+.star-btn:hover{
+    transform: scale(1.15);
+}
+
+.star-btn.filled{
+    color: #FFD54A;
+}
+
+#ratingComment{
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    background: var(--bg-surface-4);
+    border: 2px solid var(--border-input);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text-primary);
+    font-family: "Montserrat", sans-serif;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .2s ease, background .35s ease, color .35s ease;
+}
+
+#ratingComment:focus{
+    border-color: #FFD54A;
+    box-shadow: 0 0 12px rgba(255,213,74,.2);
+}
+
+.rating-comment-counter{
+    align-self: flex-end;
+    font-size: .75rem;
+    color: var(--text-muted);
+    letter-spacing: .5px;
+}
+
+#saveRatingBtn{
+    width: auto;
+    padding: 0 26px;
+    height: 48px;
+    align-self: flex-start;
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+    color: #111;
+    border: none;
+}
+
+#saveRatingBtn:hover{
+    background: linear-gradient(135deg, #fff176, #ffca28);
+}
+
+/* =======================================================
+   TELA "MY REVIEWS"
+======================================================= */
+
+/* Modal um pouco mais alto/largo que o padrão, pra caber a lista */
+.reviews-content{
+    max-width: 720px;
+    flex-direction: column;
+    align-items: stretch;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.reviews-title{
+    font-size: 2.6rem;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+    transition: color .35s ease;
+}
+
+.reviews-container{
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Card individual de uma avaliação */
+.review-card{
+    display: flex;
+    gap: 18px;
+    background: var(--bg-surface-3);
+    border: 1px solid rgba(255,213,74,.15);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 8px 22px rgba(0,0,0,.18);
+    transition: background .35s ease, border-color .35s ease, transform .25s ease, box-shadow .25s ease;
+}
+
+.review-card:hover{
+    transform: translateY(-3px);
+    border-color: #FFD54A;
+}
+
+html.light-theme .review-card{
+    box-shadow: 0 8px 20px rgba(20,20,20,.08);
+}
+
+html.light-theme .review-card:hover{
+    box-shadow: 0 14px 30px rgba(255,193,7,.16);
+}
+
+.review-poster{
+    width: 90px;
+    height: 130px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-surface-4);
+}
+
+.review-poster img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.review-info{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.review-movie-title{
+    font-family: "Anton", sans-serif;
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    letter-spacing: .5px;
+    transition: color .35s ease;
+}
+
+.review-stars{
+    color: #FFD54A;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+.review-date{
+    font-size: .75rem;
+    color: var(--text-muted);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+.review-comment{
+    color: var(--text-secondary);
+    font-size: .9rem;
+    line-height: 1.5;
+    transition: color .35s ease;
+
+    /* comentário comprido não estoura o card — trunca com "..." */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.review-actions{
+    display: flex;
+    gap: 14px;
+    margin-top: 4px;
+}
+
+.review-action-btn{
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: "Anton", sans-serif;
+    font-size: .8rem;
+    letter-spacing: .5px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color .2s ease;
+}
+
+.review-action-btn:hover{
+    color: #FFD54A;
+}
+
+.review-action-btn.delete:hover{
+    color: #ff6b6b;
+}
+
+/* Formulário de edição inline (reaproveita o visual do formulário de
+   avaliação do modal de filme) */
+.review-edit-form{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
+}
+
+.review-edit-form textarea{
+    width: 100%;
+    min-height: 80px;
+    resize: vertical;
+    background: var(--bg-surface-4);
+    border: 2px solid var(--border-input);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--text-primary);
+    font-family: "Montserrat", sans-serif;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .2s ease, background .35s ease, color .35s ease;
+}
+
+.review-edit-form textarea:focus{
+    border-color: #FFD54A;
+    box-shadow: 0 0 12px rgba(255,213,74,.2);
+}
+
+.review-edit-actions{
+    display: flex;
+    gap: 12px;
+}
+
+.review-save-btn,
+.review-cancel-btn{
+    width: auto;
+    height: 42px;
+    padding: 0 20px;
+    font-size: .85rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: "Anton", sans-serif;
+    letter-spacing: .5px;
+    transition: transform .2s ease, background .2s ease;
+}
+
+.review-save-btn{
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+    color: #111;
+    border: none;
+}
+
+.review-save-btn:hover{
+    background: linear-gradient(135deg, #fff176, #ffca28);
+}
+
+.review-cancel-btn{
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-input);
+}
+
+.review-cancel-btn:hover{
+    border-color: #FFD54A;
+    color: #FFD54A;
+}
+
+/* Estado vazio: nenhuma avaliação feita ainda */
+.reviews-empty{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.reviews-empty-icon{
+    font-size: 3rem;
+}
+
+.reviews-empty p{
+    color: var(--text-secondary);
+    font-size: 1rem;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.browse-movies-btn{
+    width: auto;
+    padding: 0 28px;
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+    color: #111;
+    border: none;
+}
+
+.browse-movies-btn:hover{
+    background: linear-gradient(135deg, #fff176, #ffca28);
+}
+
+@media (max-width: 640px){
+    .reviews-content{
+        max-width: 100%;
+    }
+
+    .review-card{
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .review-poster{
+        width: 130px;
+        height: 190px;
+    }
+
+    .review-actions{
+        justify-content: center;
+    }
+
+    .review-edit-actions{
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+#watchTrailer {
+    width: 210px;
+    height: 60px;
+    margin-top: 15px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 26px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+    border: 1px solid rgba(255,255,255,.18);
+    color: #111;
+    text-transform: uppercase;
+    font-family: "Anton", sans-serif;
+    cursor: pointer;
+    box-shadow: 0 18px 40px rgba(255,214,74,.12);
+    transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+}
+
+#watchTrailer:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #fff176, #ffca28);
+}
+
+#trailerContainer{
+    margin-top:25px;
+}
+
+#trailerFrame{
+    border:none;
+    border-radius:15px;
+}
+
+/* =======================================================
+   CARROSSÉIS (Top Rated / Movies / TV Shows / Favorites)
+======================================================= */
+
+.carousel-section {
+    width: min(1200px, 95%);
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+.carousel-title {
+    color: var(--text-primary);
+    font-family: "Anton", sans-serif;
+    font-size: 3rem;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: color .35s ease;
+}
+
+/* Sublinhado dourado decorativo embaixo do título de cada seção */
+.carousel-title::after{
+    content: "";
+    display: block;
+    width: 64px;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.carousel{
+    display:flex;
+    gap:18px;
+    overflow-x:auto;
+    padding:10px 0 6px;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.carousel::-webkit-scrollbar{
+    height:5px;
+}
+
+.carousel::-webkit-scrollbar-thumb{
+    background: rgba(255, 213, 74, 0.55);
+    border-radius:999px;
+}
+
+.carousel::-webkit-scrollbar-thumb:hover{
+    background: rgba(255, 213, 74, 0.85);
+}
+
+.carousel::-webkit-scrollbar-track{
+    background: transparent;
+}
+
+.poster-card{
+    flex: 0 0 auto;
+    width: 170px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--bg-surface-4);
+    box-shadow: 0 18px 40px rgba(0,0,0,.25);
+    transition: transform .25s ease, box-shadow .25s ease, background-color .35s ease, border-color .35s ease;
+    cursor:pointer;
+}
+
+.poster-card img{
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    image-rendering: auto;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+.poster-card:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 24px 54px rgba(0,0,0,.35);
+}
+
+/* =======================================================
+   DASHBOARD DE ANALYTICS (gráficos)
+======================================================= */
+
+.dashboard{
+    width:100%;
+    max-width:1200px;
+    margin:60px auto;
+}
+
+.dashboard-title{
+    color:var(--text-primary);
+    font-size:2.5rem;
+    margin-bottom:30px;
+    letter-spacing:2px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: color .35s ease;
+}
+
+.dashboard-title::after{
+    content: "";
+    display: block;
+    width: 64px;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:25px;
+}
+
+.chart-card{
+    background:var(--bg-surface-2);
+    border:1px solid rgba(255,213,74,.15);
+    border-radius:18px;
+    padding:25px;
+    /* Grid items também têm min-width:auto por padrão — o <canvas> do
+       gráfico tem largura própria e, sem isso, travava o card (e o
+       dashboard inteiro) numa largura de desktop em telas menores */
+    min-width: 0;
+    transition: background-color .35s ease, border-color .35s ease, transform .3s ease, box-shadow .3s ease;
+}
+
+.chart-card h3{
+    color:#FFD54A;
+    margin-bottom:20px;
+    font-size:1.2rem;
+    font-weight:400;
+}
+
+.chart-card canvas{
+    width:100% !important;
+    height:280px !important;
+}
+
+/* Evita barra de rolagem horizontal causada por elementos "full-bleed"
+   (hero) ou posicionados fora da caixa (home-light) */
+html, body{
+    overflow-x: hidden;
+}
+
+/* =======================================================
+   ANIMAÇÕES PREMIUM (entrada em cascata, modal, botões)
+======================================================= */
+
+.movie-card,
+.poster-card,
+.stat-card,
+.chart-card,
+.wrapped-stat{
+    animation: fadeUp .55s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* Cada item aparece um pouquinho depois do anterior, criando o efeito
+   de cascata quando a lista/carrossel é renderizado */
+.movie-card:nth-child(1),  .poster-card:nth-child(1),  .stat-card:nth-child(1),  .chart-card:nth-child(1),  .wrapped-stat:nth-child(1)  { animation-delay: .00s; }
+.movie-card:nth-child(2),  .poster-card:nth-child(2),  .stat-card:nth-child(2),  .chart-card:nth-child(2),  .wrapped-stat:nth-child(2)  { animation-delay: .04s; }
+.movie-card:nth-child(3),  .poster-card:nth-child(3),  .stat-card:nth-child(3),  .chart-card:nth-child(3),  .wrapped-stat:nth-child(3)  { animation-delay: .08s; }
+.movie-card:nth-child(4),  .poster-card:nth-child(4),  .stat-card:nth-child(4),  .chart-card:nth-child(4),  .wrapped-stat:nth-child(4)  { animation-delay: .12s; }
+.movie-card:nth-child(5),  .poster-card:nth-child(5),  .stat-card:nth-child(5),  .chart-card:nth-child(5),  .wrapped-stat:nth-child(5)  { animation-delay: .16s; }
+.movie-card:nth-child(6),  .poster-card:nth-child(6),  .stat-card:nth-child(6),  .chart-card:nth-child(6),  .wrapped-stat:nth-child(6)  { animation-delay: .20s; }
+.movie-card:nth-child(7),  .poster-card:nth-child(7),  .stat-card:nth-child(7)   { animation-delay: .24s; }
+.movie-card:nth-child(8),  .poster-card:nth-child(8),  .stat-card:nth-child(8)   { animation-delay: .28s; }
+.movie-card:nth-child(9),  .poster-card:nth-child(9)   { animation-delay: .32s; }
+.movie-card:nth-child(10), .poster-card:nth-child(10)  { animation-delay: .36s; }
+.movie-card:nth-child(11), .poster-card:nth-child(11)  { animation-delay: .40s; }
+.movie-card:nth-child(12), .poster-card:nth-child(12)  { animation-delay: .44s; }
+.movie-card:nth-child(n+13), .poster-card:nth-child(n+13) { animation-delay: .46s; }
+
+/* Modal abre com um "pop" suave em vez de aparecer seco */
+@keyframes modalPop{
+    from{
+        opacity:0;
+        transform:scale(.94) translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:scale(1) translateY(0);
+    }
+}
+
+.modal:not(.hidden) .modal-content{
+    animation: modalPop .35s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* Botões "afundam" levemente ao clicar — feedback físico */
+.btn:active:not(:disabled),
+.filter-btn:active,
+.favorite-btn:active,
+.hero-arrow:active{
+    transform: scale(.94);
+}
+
+/* Filtro ativo pulsa um brilho suave, discreto */
+@keyframes pulseGlow{
+    0%, 100%{ box-shadow: 0 0 0 rgba(255,213,74,.35); }
+    50%{ box-shadow: 0 0 14px rgba(255,213,74,.55); }
+}
+
+.filter-btn.active{
+    animation: pulseGlow 2.4s ease-in-out infinite;
+}
+
+/* Brilho correndo por cima da barra de progresso */
+#progress{
+    position:relative;
+    overflow:hidden;
+}
+
+#progress::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.55),
+        transparent
+    );
+    animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer{
+    from{ transform:translateX(-100%); }
+    to{ transform:translateX(100%); }
+}
+
+.movie-card,
+.poster-card{
+    will-change: transform;
+}
+
+.chart-card,
+.stat-card{
+    animation-fill-mode: both;
+}
+
+/* =======================================================
+   RESPONSIVIDADE — TABLET (≤1024px)
+======================================================= */
+@media (max-width: 1024px){
+
+    h1{
+        font-size: 110px;
+    }
+
+    .hero-content{
+        width: 68%;
+        padding: 50px;
+    }
+
+    .hero-content h1{
+        font-size: 64px;
+    }
+
+    .search-title{
+        font-size: 4rem;
+    }
+
+    .search-box{
+        width: 520px;
+    }
+
+    .dashboard-grid{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .modal-content{
+        width: 90%;
+    }
+}
+
+/* =======================================================
+   RESPONSIVIDADE — MOBILE GRANDE / TABLET PEQUENO (≤768px)
+======================================================= */
+@media (max-width: 768px){
+
+    h1{
+        font-size: 64px;
+        letter-spacing: 1px;
+    }
+
+    p{
+        font-size: 13px;
+        margin-top: 18px;
+        margin-bottom: 30px;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    .buttons{
+        flex-direction: column;
+        width: 100%;
+        padding: 0 30px;
+        gap: 14px;
+    }
+
+    .btn{
+        width: 100%;
+    }
+
+    /* Banner */
+    .hero{
+        height: 60vh;
+        min-height: 420px;
+        margin-bottom: 50px;
+    }
+
+    .hero-content{
+        width: 100%;
+        padding: 30px 24px;
+        align-items: center;
+        text-align: center;
+    }
+
+    .hero-content h1{
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    .hero-content p{
+        font-size: 13px;
+    }
+
+    .hero-content .btn{
+        width: auto;
+        align-self: center;
+    }
+
+    .hero-overlay{
+        background:linear-gradient(
+            180deg,
+            rgba(0,0,0,.55) 0%,
+            rgba(0,0,0,.75) 55%,
+            rgba(0,0,0,.95) 100%
+        );
+    }
+
+    .hero-arrow{
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    .hero-arrow-left{ left: 10px; }
+    .hero-arrow-right{ right: 10px; }
+
+    /* Busca */
+    .search-title{
+        font-size: 2.6rem;
+    }
+
+    .search-box{
+        width: 90%;
+    }
+
+    .filters{
+        gap: 10px;
+    }
+
+    .filter-btn{
+        padding: 10px 16px;
+        font-size: .85rem;
+    }
+
+    /* Estatísticas */
+    .stats{
+        gap: 14px;
+    }
+
+    .stat-card{
+        width: 45%;
+        min-width: 140px;
+        height: 95px;
+    }
+
+    /* Card de filme — empilha em vez de ficar lado a lado */
+    .movie-card{
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-height: auto;
+        padding: 18px;
+    }
+
+    .movie-poster{
+        width: 100%;
+        max-width: 220px;
+        height: 320px;
+    }
+
+    .movie-info{
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+
+    .movie-header{
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .movie-title{
+        font-size: 2.2rem;
+    }
+
+    .movie-position{
+        font-size: 1.5rem;
+    }
+
+    /* Carrossel */
+    .carousel-title{
+        font-size: 2rem;
+    }
+
+    .poster-card{
+        width: 130px;
+    }
+
+    .poster-card img{
+        height: 190px;
+    }
+
+    /* Dashboard */
+    .dashboard-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-title{
+        font-size: 1.9rem;
+        text-align: center;
+    }
+
+    /* Modal */
+    .modal-poster{
+        height: 360px;
+    }
+
+    .modal-info{
+        max-height: calc(95vh - 360px - 50px);
+    }
+}
+
+/* =======================================================
+   RESPONSIVIDADE — MOBILE PEQUENO (≤480px)
+======================================================= */
+@media (max-width: 480px){
+
+    h1{
+        font-size: 46px;
+    }
+
+    .hero{
+        min-height: 360px;
+    }
+
+    .hero-content h1{
+        font-size: 30px;
+    }
+
+    .hero-content p{
+        font-size: 12px;
+    }
+
+    .hero-dots{
+        bottom: 12px;
+    }
+
+    .hero-dot{
+        width: 7px;
+        height: 7px;
+    }
+
+    .search-title{
+        font-size: 2rem;
+    }
+
+    .stat-card{
+        width: 100%;
+    }
+
+    .movie-title{
+        font-size: 1.8rem;
+    }
+
+    .wrapped-title{
+        font-size: 36px;
+        gap: 8px;
+    }
+
+    .wrapped-title-icon{
+        font-size: 28px;
+    }
+
+    #closeModal,
+    #closeWrapped,
+    #closeLibrary,
+    #closeReviews{
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+}
+
+/* Reduz/desliga animações pra quem prefere menos movimento na tela */
+@media (prefers-reduced-motion: reduce){
+    *{
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* =======================================================
+   BOTÃO DE TEMA (lua/sol)
+======================================================= */
+
+/* =======================================================
+   CONTROLES FIXOS DO TOPO (Library + Tema)
+======================================================= */
+
+#topControls{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Na tela inicial (antes de importar/ver o ranking) esses dois botões
+   ficam escondidos — só fazem sentido depois que existem filmes na
+   tela pra consultar. Aparecem assim que o usuário entra no ranking
+   (mesmo momento em que o body ganha a classe "ranking-active"). */
+#libraryBtn,
+#myReviewsBtn{
+    display: none;
+}
+
+body.ranking-active #libraryBtn,
+body.ranking-active #myReviewsBtn{
+    display: flex;
+}
+
+/* Botão "Library" — abre o card de estatísticas rápidas da coleção */
+#libraryBtn,
+#myReviewsBtn{
+    height: 48px;
+    padding: 0 20px;
+    border-radius: 999px;
+
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    backdrop-filter: blur(10px);
+
+    color: var(--text-primary);
+    font-family: "Anton", sans-serif;
+    font-size: 15px;
+    letter-spacing: .5px;
+
+    align-items: center;
+    gap: 8px;
+
+    cursor: pointer;
+    transition: transform .3s ease, background .3s ease, border-color .3s ease, opacity .3s ease;
+}
+
+#libraryBtn:hover:not(:disabled),
+#myReviewsBtn:hover:not(:disabled){
+    transform: translateY(-2px) scale(1.03);
+    border-color: var(--accent);
+}
+
+#libraryBtn:active:not(:disabled),
+#myReviewsBtn:active:not(:disabled){
+    transform: scale(.94);
+}
+
+#libraryBtn:disabled{
+    opacity: .4;
+    cursor: not-allowed;
+    filter: grayscale(60%);
+}
+
+html.light-theme #libraryBtn,
+html.light-theme #myReviewsBtn{
+    background: rgba(0,0,0,.06);
+    border: 1px solid rgba(0,0,0,.14);
+}
+
+#themeToggle{
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    backdrop-filter: blur(10px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 20px;
+    cursor: pointer;
+
+    transition: transform .3s ease, background .3s ease, border-color .3s ease;
+}
+
+#themeToggle:hover{
+    transform: translateY(-2px) scale(1.05);
+    border-color: var(--accent);
+}
+
+#themeToggle:active{
+    transform: scale(.9);
+}
+
+#themeIcon{
+    display: inline-block;
+    transition: transform .5s cubic-bezier(.22,1,.36,1);
+    margin-bottom: 3.5px;
+}
+
+/* Gira o ícone ao trocar de tema */
+#themeToggle.spin #themeIcon{
+    transform: rotate(360deg);
+}
+
+html.light-theme #themeToggle{
+    background: rgba(0,0,0,.06);
+    border: 1px solid rgba(0,0,0,.14);
+}
+
+@media (max-width: 768px){
+    #topControls{
+        top: 14px;
+        right: 14px;
+        gap: 8px;
+    }
+
+    #libraryBtn,
+    #myReviewsBtn{
+        height: 42px;
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    #themeToggle{
+        width: 42px;
+        height: 42px;
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 420px){
+    #libraryBtn span.library-label,
+    #myReviewsBtn span.library-label{
+        display: none;
+    }
+    #libraryBtn,
+    #myReviewsBtn{
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+    }
+}
+
+/* =======================================================
+   SKELETON LOADING (pôsteres)
+   Enquanto a imagem não carrega, mostra um placeholder com
+   "shimmer" passando por cima. Some suavemente quando a
+   imagem termina de carregar (ou dá erro).
+======================================================= */
+
+.skeleton-wrap{
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        100deg,
+        #1a1a1a 30%,
+        #262626 45%,
+        #1a1a1a 60%
+    );
+    background-size: 250% 100%;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+
+html.light-theme .skeleton-wrap{
+    background: linear-gradient(
+        100deg,
+        #e4e4e4 30%,
+        #f2f2f2 45%,
+        #e4e4e4 60%
+    );
+    background-size: 250% 100%;
+}
+
+@keyframes skeletonShimmer{
+    0%{ background-position: 200% 0; }
+    100%{ background-position: -50% 0; }
+}
+
+.skeleton-wrap img{
+    opacity: 0;
+    transition: opacity .5s ease;
+}
+
+.skeleton-wrap.loaded{
+    animation: none;
+    background: none;
+}
+
+.skeleton-wrap.loaded img{
+    opacity: 1;
+}
+
+/* =======================================================
+   WRAPPED — botões de download em PDF e compartilhar
+======================================================= */
+
+.wrapped-actions{
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.wrapped-action-btn{
+    width: auto;
+    height: 52px;
+    padding: 0 24px;
+    font-size: 15px;
+    background: rgba(255,255,255,.06);
+}
+
+.wrapped-action-btn:hover:not(:disabled){
+    background: rgba(255,255,255,.14);
+}
+
+#downloadWrappedBtn{
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+    color: #111;
+    border: none;
+}
+
+#downloadWrappedBtn:hover{
+    background: linear-gradient(135deg, #fff176, #ffca28);
+}
+
+@media (max-width: 480px){
+    .wrapped-actions{
+        flex-direction: column;
+        width: 100%;
+    }
+    .wrapped-action-btn{
+        width: 100%;
+    }
+}
+
+/* =======================================================
+   TEMA CLARO — refinamentos visuais
+   No fundo escuro os cards já se destacam por contraste de
+   cor. No fundo claro isso não acontece sozinho, então aqui
+   a gente compensa com sombra, profundidade e uns toques
+   dourados pra não ficar "chapado".
+======================================================= */
+
+html.light-theme .stat-card{
+    box-shadow: 0 10px 26px rgba(20,20,20,.06);
+    border-color: rgba(0,0,0,.06);
+}
+
+html.light-theme .stat-card:hover{
+    box-shadow: 0 16px 34px rgba(255,193,7,.18);
+}
+
+html.light-theme .chart-card{
+    box-shadow: 0 10px 26px rgba(20,20,20,.06);
+    border-color: rgba(0,0,0,.06);
+    transition: background-color .35s ease, border-color .35s ease, transform .3s ease, box-shadow .3s ease;
+}
+
+html.light-theme .chart-card:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 16px 34px rgba(255,193,7,.16);
+}
+
+html.light-theme .movie-card{
+    box-shadow: 0 8px 22px rgba(20,20,20,.07);
+}
+
+html.light-theme .movie-card:hover{
+    box-shadow: 0 18px 40px rgba(255,193,7,.18);
+}
+
+html.light-theme .poster-card{
+    box-shadow: 0 10px 26px rgba(20,20,20,.10);
+}
+
+html.light-theme .poster-card:hover{
+    box-shadow: 0 20px 40px rgba(255,193,7,.20);
+}
+
+html.light-theme .filter-btn{
+    box-shadow: 0 4px 12px rgba(20,20,20,.05);
+    border-color: rgba(0,0,0,.08);
+}
+
+html.light-theme .filter-btn.active{
+    box-shadow: 0 8px 20px rgba(255,193,7,.35);
+}
+
+html.light-theme #searchMovie{
+    box-shadow: 0 6px 18px rgba(20,20,20,.04);
+}
+
+html.light-theme .carousel-title,
+html.light-theme .dashboard-title{
+    filter: drop-shadow(0 2px 6px rgba(255,193,7,.15));
+}
+
+/* Modais continuam escuros de propósito nos dois temas; só deixa o
+   fundo por trás deles um pouco mais escuro no tema claro pra dar
+   contraste */
+html.light-theme .modal{
+    background: rgba(0,0,0,.55);
+}
+
+/* Os cards do resumo Wrapped ficavam quase da mesma cor do fundo do
+   modal no tema claro (pouco contraste). Aqui eles ganham um branco
+   mais puro, sombra própria e uma borda dourada mais visível — fica
+   claro onde cada card começa e termina. */
+html.light-theme .wrapped-stat{
+    background: #ffffff;
+    border-color: rgba(224, 168, 21, .35);
+    box-shadow: 0 8px 20px rgba(20,20,20,.08);
+}
+
+html.light-theme .wrapped-stat:hover{
+    box-shadow: 0 12px 28px rgba(255,193,7,.18);
+    transform: translateY(-2px);
+}
+
+/* =======================================================
+   RESPONSIVIDADE — ULTRAWIDE (≥1600px)
+   Em monitores muito largos, o conteúdo ficava "encolhido"
+   no meio da tela com margens enormes. Aqui a gente usa
+   melhor o espaço extra sem esticar demais o texto.
+======================================================= */
+@media (min-width: 1600px){
+
+    #movieList{
+        width: min(100%, 1100px);
+    }
+
+    .carousel-section{
+        width: min(1500px, 92%);
+    }
+
+    .dashboard{
+        max-width: 1500px;
+    }
+
+    .dashboard-grid{
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .stats{
+        gap: 30px;
+    }
+
+    .stat-card{
+        width: 195px;
+        height: 118px;
+    }
+
+    .poster-card{
+        width: 190px;
+    }
+
+    .poster-card img{
+        height: 270px;
+    }
+
+    .hero-content{
+        padding: 90px 100px;
+    }
+}
+
+/* =======================================================
+   RESPONSIVIDADE — TABLET EM PÉ / NOTEBOOK PEQUENO (769–1024px)
+   Reforça alguns ajustes que o breakpoint de ≤1024px já cobre
+   parcialmente, calibrados especificamente pra essa faixa
+   (tablets em pé, notebooks de tela pequena).
+======================================================= */
+@media (min-width: 769px) and (max-width: 1024px){
+
+    .stat-card{
+        width: 160px;
+        height: 102px;
+    }
+
+    .stats{
+        gap: 18px;
+    }
+
+    .poster-card{
+        width: 155px;
+    }
+
+    .poster-card img{
+        height: 225px;
+    }
+
+    #movieList{
+        width: min(100%, 92%);
+    }
+
+    .movie-poster{
+        width: 120px;
+        height: 190px;
+    }
+
+    .movie-title{
+        font-size: 2.6rem;
+    }
+}

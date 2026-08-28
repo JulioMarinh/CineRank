@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Titulo da Página -->
+    <title>CINERANK</title>
+    <!-- Link para o arquivo CSS -->
+    <link rel="stylesheet" href="assets/style.css">
+    <!-- BEBAS NEUE -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat+Alternates:wght@300;400;600;700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <!-- ANTON -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Controles fixos no topo: biblioteca, minhas avaliações e tema,
+     todos fora das seções pra ficarem sempre visíveis -->
+<div id="topControls">
+    <button id="libraryBtn" disabled>
+        📊 <span class="library-label">Library</span>
+    </button>
+    <button id="myReviewsBtn">
+        ⭐ <span class="library-label">My Reviews</span>
+    </button>
+    <button id="themeToggle" aria-label="Toggle light/dark theme">
+        <span id="themeIcon">🌙</span>
+    </button>
+</div>
+<main>
+    <!-- HOME -->
+    <section id="home" class="container">
+        <h1><span class="home-light"></span>CINE<span>RANK</span></h1>
+        <p>
+            IMPORT YOUR IMDB LIST AND AUTOMATICALLY CREATE YOUR MOVIE RANKING.
+        </p>
+        <div class="buttons">
+            <input type="file" id="csvFile" accept=".csv" hidden>
+            <button class="btn" id="uploadBtn">
+                UPLOAD MOVIE LIST
+            </button>
+            <button class="btn" id="viewRanking" disabled>
+                VIEW RANKING
+            </button>
+            <button id="wrappedBtn" class="btn" disabled>
+                🎉 CineRank Wrapped
+            </button>
+        </div>
+        <!-- LOADING -->
+        <div id="loading" class="hidden">
+
+        <p id="loadingText"></p>
+
+        <div class="loading-bar">
+
+        <div id="progress"></div>
+
+        </div>
+        </div>
+        <p id="fileName"></p>
+    </section>
+
+    <section id="hero" class="hero hidden">
+
+        <!-- Placeholder animado enquanto a foto de fundo carrega -->
+        <div class="hero-skeleton" id="heroSkeleton"></div>
+
+        <div class="hero-bg" id="heroBgA"></div>
+        <div class="hero-bg" id="heroBgB"></div>
+
+        <div class="hero-overlay"></div>
+
+        <!-- Indicadores (bolinhas) de qual filme está em destaque -->
+        <div class="hero-dots" id="heroDots"></div>
+
+        <!-- Setas de navegação manual -->
+        <button class="hero-arrow hero-arrow-left" id="heroPrev" aria-label="Previous movie">‹</button>
+        <button class="hero-arrow hero-arrow-right" id="heroNext" aria-label="Next movie">›</button>
+
+        <div class="hero-content">
+
+            <h1 id="heroTitle"></h1>
+
+            <p id="heroInfo"></p>
+
+            <p id="heroDescription"></p>
+
+            <button id="heroButton" class="btn">
+                View Details
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- Os dois modais (filme e Wrapped) ficam fora da #ranking de propósito:
+         assim eles conseguem abrir em qualquer tela, mesmo antes do usuário
+         clicar em "View Ranking" -->
+
+    <!-- Modal -->
+    <div id="movieModal" class="modal hidden">
+        <div class="modal-content">
+            <button id="closeModal">
+                ✕
+            </button>
+            <div class="modal-poster">
+                <img id="modalPoster">
+            </div>
+            <div class="modal-info">
+                <h2 id="modalTitle"></h2>
+                <p id="modalRating"></p>
+                <p id="modalYear"></p>
+                <p id="modalGenre"></p>
+                <p id="modalRuntime"></p>
+                <p id="modalOverview"></p>
+
+                <!-- Avaliação pessoal do usuário (0 a 10, em estrelas de 2 em 2) -->
+                <div class="user-rating">
+
+                    <h3 class="user-rating-title">Your Rating</h3>
+
+                    <div class="user-rating-display">
+                        <div class="stars-display" id="ratingStarsDisplay">☆☆☆☆☆</div>
+                        <span class="rating-score" id="ratingScoreDisplay">0 / 10</span>
+                    </div>
+
+                    <button type="button" id="rateBtn" class="btn rate-btn">Rate</button>
+
+                    <div class="rating-form hidden" id="ratingForm">
+
+                        <p class="rating-form-title">⭐ How do you rate this movie?</p>
+
+                        <div class="stars-input" id="ratingStarsInput">
+                            <button type="button" class="star-btn" data-value="1">☆</button>
+                            <button type="button" class="star-btn" data-value="2">☆</button>
+                            <button type="button" class="star-btn" data-value="3">☆</button>
+                            <button type="button" class="star-btn" data-value="4">☆</button>
+                            <button type="button" class="star-btn" data-value="5">☆</button>
+                        </div>
+
+                        <textarea
+                            id="ratingComment"
+                            maxlength="300"
+                            placeholder="Write a comment (optional)"
+                        ></textarea>
+
+                        <div class="rating-comment-counter">
+                            <span id="ratingCommentCount">0</span>/300
+                        </div>
+
+                        <button type="button" id="saveRatingBtn" class="btn">Save Review</button>
+
+                    </div>
+
+                </div>
+
+                <button id="watchTrailer" class="btn">
+                    ▶ Watch Trailer
+                </button>
+                <a id="modalIMDb" target="_blank" class="btn">Open on IMDb</a>
+                <div id="trailerContainer" class="hidden">
+                    <iframe id="trailerFrame" width="100%" height="360" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="wrappedModal" class="modal hidden">
+
+        <div class="modal-content wrapped-content">
+
+            <button id="closeWrapped">✕</button>
+
+            <div id="wrappedContainer"></div>
+
+            <!-- Ações do resumo: baixar como PDF ou compartilhar -->
+            <div class="wrapped-actions">
+                <button id="downloadWrappedBtn" class="btn wrapped-action-btn">
+                    ⬇ Download PDF
+                </button>
+                <button id="shareWrappedBtn" class="btn wrapped-action-btn">
+                    📤 Share
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Modal da biblioteca: estatísticas rápidas da coleção importada -->
+    <div id="libraryModal" class="modal hidden">
+
+        <div class="modal-content wrapped-content">
+
+            <button id="closeLibrary">✕</button>
+
+            <div id="libraryContainer"></div>
+
+        </div>
+
+    </div>
+
+    <!-- Modal "My Reviews": lista de todas as avaliações que o usuário
+         já fez, com opção de editar ou excluir cada uma -->
+    <div id="reviewsModal" class="modal hidden">
+
+        <div class="modal-content reviews-content">
+
+            <button id="closeReviews">✕</button>
+
+            <h1 class="reviews-title">My Reviews</h1>
+
+            <div id="reviewsContainer" class="reviews-container"></div>
+
+        </div>
+
+    </div>
+
+    <!-- RANKING -->
+    <section id="ranking" class="hidden">
+        <h1 class="search-title">FIND YOUR <span>NEXT FAVORITE</span></h1>
+        <p class="search-subtitle">
+         SEARCH YOUR RANKING
+        </p>
+    <div class="search-container">
+
+    <div class="search-box">
+
+        <input
+            type="text"
+            id="searchMovie"
+            placeholder=" "
+        >
+
+        <label for="searchMovie">
+            Search movie
+        </label>
+
+    </div>
+
+    <div class="filters">
+
+        <button class="filter-btn active" data-filter="all">
+            All
+        </button>
+
+        <button class="filter-btn" data-filter="movie">
+            Movies
+        </button>
+
+        <button class="filter-btn" data-filter="tv">
+            TV Shows
+        </button>
+
+        <button class="filter-btn" data-filter="top">
+            Top Rated
+        </button>
+
+        <button class="filter-btn" data-filter="favorites">
+            Favorites
+        </button>
+
+    </div>
+
+</div>
+<!-- STATUS  -->
+<div class="stats">
+
+    <div class="stat-card">
+        <span>Titles</span>
+        <h2 id="totalMovies">0</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Average Rating</span>
+        <h2 id="averageRating">0.0</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Year Range</span>
+        <h2 id="yearRange">----</h2>
+    </div>
+    
+    <div class="stat-card">
+        <span>MOVIES</span>
+        <h2 id="movies">0</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>TV Series</span>
+        <h2 id="tvShows">0</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Average Runtime</span>
+        <h2 id="averageRuntime">0 min</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Total Runtime</span>
+        <h2 id="totalRuntime">0 h</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Watch Time</span>
+        <h2 id="watchDays">0 days</h2>
+    </div>
+
+</div>
+<!-- Carousel (Top Rated) -->
+<section class="carousel-section">
+
+    <h2 class="carousel-title">
+        🔥 Top Rated
+    </h2>
+
+    <div
+        class="carousel"
+        id="topRatedCarousel">
+
+    </div>
+
+</section>
+
+<section class="carousel-section">
+
+    <h2 class="carousel-title">
+        🎬 Movies
+    </h2>
+
+    <div class="carousel" id="moviesCarousel"></div>
+
+</section>
+
+<section class="carousel-section">
+
+    <h2 class="carousel-title">
+        📺 TV Shows
+    </h2>
+
+    <div class="carousel" id="tvCarousel"></div>
+
+</section>
+
+<section class="carousel-section">
+
+    <h2 class="carousel-title">
+        ⭐ Favorites
+    </h2>
+
+    <div class="carousel" id="favoritesCarousel"></div>
+
+</section>
+
+<section class="dashboard">
+
+    <h2 class="dashboard-title">
+        Collection Analytics
+    </h2>
+
+    <div class="dashboard-grid">
+
+        <div class="chart-card">
+            <h3>Genres</h3>
+            <canvas id="genresChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Ratings</h3>
+            <canvas id="ratingsChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Release Years</h3>
+            <canvas id="yearsChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Top Directors</h3>
+            <canvas id="directorsChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Countries</h3>
+            <canvas id="countriesChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Languages</h3>
+            <canvas id="languagesChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Top Actors</h3>
+            <canvas id="actorsChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Movies vs TV Shows</h3>
+            <canvas id="typesChart"></canvas>
+        </div>
+
+    </div>
+
+</section>
+
+    <div id="movieList"></div>
+    <div class="load-more-container">
+        <button id="loadMoreBtn" class="btn">
+            Load More
+        </button>
+    </div>
+    </section>
+</main>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bibliotecas usadas só pra gerar o PDF do resumo Wrapped -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
