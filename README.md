@@ -121,7 +121,7 @@ Durante o desenvolvimento também fiz vários ajustes de responsividade para evi
 Clone o repositório:
 
 ```bash
-git clone https://github.com/SEU-USUARIO/CineRank.git
+git clone [https://github.com/SEU-USUARIO/CineRank.git]
 ```
 
 Entre na pasta:
