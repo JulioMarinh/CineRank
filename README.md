@@ -73,7 +73,7 @@ Também criei um sistema de favoritos para poder marcar os filmes que mais goste
 
 Ao selecionar um filme, é possível abrir uma tela com informações mais detalhadas, incluindo dados obtidos através da API do TMDB.
 
-![Detalhes do filme](/assets/screenshot/review.png)
+![Detalhes do filme](/assets/screenshot/details.png)
 
 ## 📊 Dashboard
 
